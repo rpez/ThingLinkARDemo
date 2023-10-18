@@ -68,8 +68,8 @@ fun ARScreen() {
                 onHitResult = {node, hitResult ->
 
                 }
-                arNodes.add(modelNode.value!!)
             }
+            arNodes.add(modelNode.value!!)
         }
     )
 }
