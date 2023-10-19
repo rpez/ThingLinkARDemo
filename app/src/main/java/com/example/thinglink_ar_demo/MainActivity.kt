@@ -7,14 +7,32 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.thinglink_ar_demo.common.helpers.CameraPermissionHelper
 import com.example.thinglink_ar_demo.common.helpers.SnackbarHelper
@@ -37,20 +55,28 @@ import io.github.sceneview.ar.arcore.position
 import io.github.sceneview.ar.node.ArModelNode
 import io.github.sceneview.ar.node.ArNode
 import io.github.sceneview.ar.node.PlacementMode
-
+import androidx.compose.material3.TopAppBarDefaults.mediumTopAppBarColors
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.Info
+import kotlinx.coroutines.launch
+import android.Manifest
+import android.view.Surface
+import androidx.compose.material3.SnackbarDuration
+import androidx.core.app.ActivityCompat
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var session: Session
-    private lateinit var imageDatabase: AugmentedImageDatabase
-    private lateinit var config: Config
+//    private lateinit var imageDatabase: AugmentedImageDatabase
+//    private lateinit var config: Config
+//
+//    private val messageSnackbarHelper = SnackbarHelper()
+//
+//    private var installRequested: Boolean = false
+//    private var shouldConfigureSession: Boolean = false
+//    private var shouldCreateSession: Boolean = true
 
-    private val messageSnackbarHelper = SnackbarHelper()
-
-    private var installRequested: Boolean = false
-    private var shouldConfigureSession: Boolean = false
-    private var shouldCreateSession: Boolean = true
-
+    private var cameraPermissionGranted: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,14 +86,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ThingLinkARDemoTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()){
-                        ARScreen(session)
-                    }
-                }
+                MainView()
             }
         }
     }
@@ -76,215 +95,126 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
-            if (isGranted) {
-                Log.i("Permission: ", "Granted")
-            } else {
-                Log.i("Permission: ", "Denied")
-            }
+            cameraPermissionGranted = isGranted
         }
 
-    fun View.showSnackbar(
-        view: View,
-        msg: String,
-        length: Int,
-        actionMessage: CharSequence?,
-        action: (View) -> Unit
-    ) {
-        val snackbar = Snackbar.make(view, msg, length)
-        if (actionMessage != null) {
-            snackbar.setAction(actionMessage) {
-                action(this)
-            }.show()
-        } else {
-            snackbar.show()
-        }
-    }
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun MainView() {
+        val scope = rememberCoroutineScope()
+        val snackbarHostState = remember { SnackbarHostState() }
 
-    fun requestPermission(view: View) {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                showSnackbar(
-                    view,
-                    getString(R.string.permission_granted),
-                    Snackbar.LENGTH_INDEFINITE,
-                    null
-                ) {}
-            }
-
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.CAMERA
-            ) -> {
-                layout.showSnackbar(
-                    view,
-                    getString(R.string.permission_required),
-                    Snackbar.LENGTH_INDEFINITE,
-                    getString(R.string.ok)
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    colors = mediumTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    title = {
+                        Text("Top app bar")
+                    }
+                )
+            },
+            bottomBar = {
+                BottomAppBar(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.primary,
                 ) {
-                    requestPermissionLauncher.launch(
-                        Manifest.permission.CAMERA
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        text = "Bottom app bar",
                     )
                 }
-            }
-
-            else -> {
-                requestPermissionLauncher.launch(
-                    Manifest.permission.CAMERA
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            floatingActionButton = {
+                ExtendedFloatingActionButton(
+                    text = { Text("Start") },
+                    icon = { Icon(Icons.Filled.Info, contentDescription = "") },
+                    onClick = {
+                        requestPermissionLauncher.launch(
+                            Manifest.permission.CAMERA
+                        )
+                    }
                 )
             }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        ARScreen(session)
+                    }
+                }
+            }
         }
     }
 
-//    override fun onResume() {
-//        super.onResume()
+    @Composable
+    fun ARScreen(session: Session) {
+        val arNodes = remember { mutableListOf<ArNode>() }
+        val modelNode = remember { mutableStateOf<ArModelNode?>(null) }
+
+        // Construct AR scene
+        ARScene(
+            modifier = Modifier.fillMaxSize(),
+            nodes = arNodes,
+            planeRenderer = true,
+            onCreate = {
+                it.lightEstimationMode = LightEstimationMode.DISABLED
+                it.planeRenderer.isShadowReceiver = false
+                modelNode.value =
+                    ArModelNode(it.engine, placementMode = PlacementMode.INSTANT).apply {
+                        loadModelGlbAsync(
+                            glbFileLocation = "models/sphere.glb",
+                        ) {}
+                        onFrame = { _, _ ->
+//                            updateAugmentedImages(session, modelNode.value!!)
+                        }
+                    }
+                arNodes.add(modelNode.value!!)
+            }
+        )
+    }
+
+//    fun updateAugmentedImages(session: Session, model: ArModelNode) {
+//        val frame = session.update()
+//        val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
 //
-//        if (shouldCreateSession) {
-//            var exception: Exception? = null
-//            var message: String? = null
-//            try {
-//                when (ArCoreApk.getInstance().requestInstall(this, !installRequested)) {
-//                    ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
-//                        installRequested = true
-//                        return
+//        for (img in updatedAugmentedImages) {
+//            if (img.trackingState == TrackingState.TRACKING) {
+//                when (img.trackingMethod) {
+//                    AugmentedImage.TrackingMethod.LAST_KNOWN_POSE -> {
+//                        // The planar target is currently being tracked based on its last known pose.
+//                        model.isVisible = true
+//                        model.position = img.centerPose.position
+//                        model.anchor()
 //                    }
 //
-//                    ArCoreApk.InstallStatus.INSTALLED -> {}
+//                    AugmentedImage.TrackingMethod.FULL_TRACKING -> {
+//                        // The planar target is being tracked using the current camera image.
+//                        model.isVisible = true
+//                        model.position = img.centerPose.position
+//                        model.anchor()
+//                    }
+//
+//                    AugmentedImage.TrackingMethod.NOT_TRACKING -> {
+//                        // The planar target isn't been tracked.
+//                        model.isVisible = false
+//                    }
 //                }
-//
-//                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-//                // permission on Android M and above, now is a good time to ask the user for it.
-//                if (!CameraPermissionHelper.hasCameraPermission(this)) {
-//                    CameraPermissionHelper.requestCameraPermission(this)
-//                    return
-//                }
-//                session = Session(this)
-//            } catch (e: UnavailableArcoreNotInstalledException) {
-//                message = "Please install ARCore"
-//                exception = e
-//            } catch (e: UnavailableUserDeclinedInstallationException) {
-//                message = "Please install ARCore"
-//                exception = e
-//            } catch (e: UnavailableApkTooOldException) {
-//                message = "Please update ARCore"
-//                exception = e
-//            } catch (e: UnavailableSdkTooOldException) {
-//                message = "Please update this app"
-//                exception = e
-//            } catch (e: Exception) {
-//                message = "This device does not support AR"
-//                exception = e
 //            }
-//            if (message != null) {
-//                messageSnackbarHelper.showError(this, message)
-//                Log.e("Error", "Exception creating session", exception)
-//                return
-//            }
-//            shouldConfigureSession = true
-//            shouldCreateSession = false
 //        }
-//        if (shouldConfigureSession) {
-//            configureSession()
-//            shouldConfigureSession = false
-//        }
-//
-//        // Note that order matters - see the note in onPause(), the reverse applies here.
-//        try {
-//            session.resume()
-//        } catch (e: CameraNotAvailableException) {
-//            messageSnackbarHelper.showError(this, "Camera not available. Try restarting the app.")
-//            session.close()
-//            return
-//        }
-////        surfaceView.onResume()
-////        displayRotationHelper.onResume()
-////        fitToScanView.setVisibility(View.VISIBLE)
 //    }
-
-//    override fun onPause() {
-//        super.onPause()
-//        shouldCreateSession = true
-//        session.pause()
-//    }
-
-//    override fun onDestroy() {
-//        session.close()
-//        shouldCreateSession = true
-//        super.onDestroy()
-//    }
-
-//    private fun configureSession() {
-//        config = Config(session)
-//        config.focusMode = Config.FocusMode.AUTO
-//        if (!setupAugmentedImageDatabase(config)) {
-//            messageSnackbarHelper.showError(this, "Could not setup augmented image database")
-//        }
-//        session.configure(config)
-//    }
-//
-//    private fun setupAugmentedImageDatabase(config: Config): Boolean {
-//        imageDatabase = this.assets.open("imagedb/images.imgdb").use {
-//            AugmentedImageDatabase.deserialize(session, it)
-//        }
-//        if (imageDatabase.numImages == 0) return false
-//
-//        config.augmentedImageDatabase = imageDatabase
-//        return true
-//    }
-}
-
-@Composable
-fun ARScreen(session: Session) {
-    val arNodes = remember { mutableListOf<ArNode>() }
-    val modelNode = remember { mutableStateOf<ArModelNode?>(null) }
-
-    // Construct AR scene
-    ARScene(
-        modifier = Modifier.fillMaxSize(),
-        nodes = arNodes,
-        planeRenderer = true,
-        onCreate = {
-            it.lightEstimationMode = LightEstimationMode.DISABLED
-            it.planeRenderer.isShadowReceiver = false
-            modelNode.value = ArModelNode(it.engine, placementMode = PlacementMode.INSTANT).apply {
-                loadModelGlbAsync(
-                    glbFileLocation = "models/sphere.glb",
-                ){}
-                onFrame = {_, _ ->
-                    updateAugmentedImages(session, modelNode.value!!)
-                }
-            }
-            arNodes.add(modelNode.value!!)
-        }
-    )
-}
-
-fun updateAugmentedImages(session: Session, model: ArModelNode) {
-    val frame = session.update()
-    val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
-
-    for (img in updatedAugmentedImages) {
-        if (img.trackingState == TrackingState.TRACKING) {
-            when (img.trackingMethod) {
-                AugmentedImage.TrackingMethod.LAST_KNOWN_POSE -> {
-                    // The planar target is currently being tracked based on its last known pose.
-                    model.isVisible = true
-                    model.position = img.centerPose.position
-                    model.anchor()
-                }
-                AugmentedImage.TrackingMethod.FULL_TRACKING -> {
-                    // The planar target is being tracked using the current camera image.
-                    model.isVisible = true
-                    model.position = img.centerPose.position
-                    model.anchor()
-                }
-                AugmentedImage.TrackingMethod.NOT_TRACKING -> {
-                    // The planar target isn't been tracked.
-                    model.isVisible = false
-                }
-            }
-        }
-    }
 }
