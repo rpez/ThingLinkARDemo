@@ -47,9 +47,10 @@ import io.github.sceneview.math.toVector3
 
 class MainActivity : ComponentActivity() {
 
+    // How close to the object are taps registered
     private val objectTapRadius: Float = 1.0f
+    // The AR session
     private lateinit var session: Session
-
     // Coroutine launcher for permissions
     private val requestPermissionLauncher =
         registerForActivityResult(
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
         // Create session
         session = Session(this)
 
+        // App UI
         setContent {
             ThingLinkARDemoTheme {
                 MainView()
@@ -78,8 +80,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainView() {
+        // Should the info popup be shown
         val showPopup = remember { mutableStateOf<Boolean>(false) }
 
+        // All content of the app is within this scaffold
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -129,12 +133,16 @@ class MainActivity : ComponentActivity() {
 //    @Preview
     @Composable
     fun ARScreen(showPopup: MutableState<Boolean>) {
+        // The AR nodes in the scene
         val arNodes = remember { mutableListOf<ArNode>() }
+        // The 3D models in the scene
         val modelNode = remember { mutableStateOf<ArModelNode?>(null) }
+        // Whether or not the model has been placed
         val modelPlaced = remember { mutableStateOf<Boolean>(false) }
+        // The current position of the placed model
         val nodePosition = remember { mutableStateOf<Vector3>(Vector3.zero()) }
 
-        // Construct AR scene
+        // AR scene with a placeable object
         ARScene(
             modifier = Modifier.fillMaxSize(),
             nodes = arNodes,
@@ -168,6 +176,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun InfoPopup(showPopup: MutableState<Boolean>) {
+        // Popup showing info (placeholder text). Both dismiss and confirm just close the dialog.
         AlertDialog(
             icon = {
                 Icon(Icons.Filled.Info, contentDescription = "Info Icon")
@@ -202,7 +211,8 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    fun Vector3Distance(a: Vector3, b: Vector3): Float {
+    // Helper function for calculating distance between two vectors
+    private fun Vector3Distance(a: Vector3, b: Vector3): Float {
         return Vector3.subtract(a, b).length()
     }
 }
