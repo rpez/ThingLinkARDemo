@@ -55,8 +55,6 @@ import javax.microedition.khronos.opengles.GL10
 class MainActivity : ComponentActivity() {
 
     private lateinit var session: Session
-    private lateinit var imageDatabase: AugmentedImageDatabase
-    private lateinit var config: Config
 
     private val requestPermissionLauncher =
         registerForActivityResult(
@@ -73,17 +71,6 @@ class MainActivity : ComponentActivity() {
         )
 
         session = Session(this)
-//        imageDatabase = this.assets.open("imagedb/images.imgdb").use {
-//            AugmentedImageDatabase.deserialize(session, it)
-//        }
-//        config = Config(session)
-//        config.augmentedImageDatabase = imageDatabase
-//        session.configure(config)
-//        session.resume()
-
-//        val genTextures = IntArray(1){0}
-//        GLES20.glGenTextures(1, genTextures, 0)
-//        session.setCameraTextureName(genTextures[0])
 
         setContent {
             ThingLinkARDemoTheme {
@@ -179,50 +166,5 @@ class MainActivity : ComponentActivity() {
                 arNodes.add(modelNode.value!!)
             }
         )
-    }
-
-    private fun onDrawFrame(model: ArModelNode) {
-        // Clear screen to notify driver it should not load any pixels from previous frame.
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-
-        try {
-            // session.setCameraTextureName(backgroundRenderer.getTextureId())
-
-            // Obtain the current frame from ARSession. When the configuration is set to
-            // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
-            // camera framerate.
-            val frame = session.update()
-
-            // Visualize augmented images.
-            updateAugmentedImages(model, frame)
-        } catch (t: Throwable) {
-            // Avoid crashing the application due to unhandled exceptions.
-            Log.e("Error", "Exception on the OpenGL thread", t)
-        }
-    }
-
-    private fun updateAugmentedImages(model: ArModelNode, frame: Frame) {
-        val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
-
-        for (img in updatedAugmentedImages) {
-            if (img.trackingState == TrackingState.TRACKING) {
-                when (img.trackingMethod) {
-                    AugmentedImage.TrackingMethod.LAST_KNOWN_POSE -> {
-                        // The planar target is currently being tracked based on its last known pose.
-                        Log.d("DEBUG", "LAST KNOW POSE")
-                    }
-
-                    AugmentedImage.TrackingMethod.FULL_TRACKING -> {
-                        // The planar target is being tracked using the current camera image.
-                        Log.d("DEBUG", "FULL TRACKING")
-                    }
-
-                    AugmentedImage.TrackingMethod.NOT_TRACKING -> {
-                        // The planar target isn't been tracked.
-                        Log.d("DEBUG", "NOT TRACKING")
-                    }
-                }
-            }
-        }
     }
 }
