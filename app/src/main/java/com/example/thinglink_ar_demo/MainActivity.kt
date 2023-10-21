@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        ARScreen(session)
+                        ARScreen()
                     }
                 }
             }
@@ -113,7 +113,7 @@ class MainActivity : ComponentActivity() {
 
 //    @Preview
     @Composable
-    fun ARScreen(session: Session) {
+    fun ARScreen() {
         val arNodes = remember { mutableListOf<ArNode>() }
         val modelNode = remember { mutableStateOf<ArModelNode?>(null) }
 
