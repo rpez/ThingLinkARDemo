@@ -62,42 +62,38 @@ import kotlinx.coroutines.launch
 import android.Manifest
 import android.view.Surface
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var session: Session
-//    private lateinit var imageDatabase: AugmentedImageDatabase
-//    private lateinit var config: Config
-//
-//    private val messageSnackbarHelper = SnackbarHelper()
-//
-//    private var installRequested: Boolean = false
-//    private var shouldConfigureSession: Boolean = false
-//    private var shouldCreateSession: Boolean = true
 
-    private var cameraPermissionGranted: Boolean = false
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { _ ->
+
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        requestPermissionLauncher.launch(
+            Manifest.permission.CAMERA
+        )
 
         session = Session(this)
 
         setContent {
             ThingLinkARDemoTheme {
-                // A surface container using the 'background' color from the theme
                 MainView()
             }
         }
     }
 
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            cameraPermissionGranted = isGranted
-        }
-
+    @Preview
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainView() {
@@ -112,7 +108,7 @@ class MainActivity : ComponentActivity() {
                         titleContentColor = MaterialTheme.colorScheme.primary,
                     ),
                     title = {
-                        Text("Top app bar")
+                        Text("ThingLink Ar Demo")
                     }
                 )
             },
@@ -125,7 +121,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        text = "Bottom app bar",
+                        text = "Scan Mona Lisa",
                     )
                 }
             },
@@ -137,9 +133,7 @@ class MainActivity : ComponentActivity() {
                     text = { Text("Start") },
                     icon = { Icon(Icons.Filled.Info, contentDescription = "") },
                     onClick = {
-                        requestPermissionLauncher.launch(
-                            Manifest.permission.CAMERA
-                        )
+
                     }
                 )
             }
@@ -153,7 +147,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         ARScreen(session)
                     }
                 }
@@ -161,6 +157,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+//    @Preview
     @Composable
     fun ARScreen(session: Session) {
         val arNodes = remember { mutableListOf<ArNode>() }
