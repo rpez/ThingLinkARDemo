@@ -1,6 +1,9 @@
 package com.example.thinglink_ar_demo
 
+import android.Manifest
+import android.opengl.GLES20
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -22,30 +27,30 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.mediumTopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.thinglink_ar_demo.ui.theme.ThingLinkARDemoTheme
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.AugmentedImageDatabase
+import com.google.ar.core.Camera
 import com.google.ar.core.Config
 import com.google.ar.core.Config.LightEstimationMode
+import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import io.github.sceneview.ar.ARScene
-import io.github.sceneview.ar.arcore.position
 import io.github.sceneview.ar.node.ArModelNode
 import io.github.sceneview.ar.node.ArNode
 import io.github.sceneview.ar.node.PlacementMode
-import androidx.compose.material3.TopAppBarDefaults.mediumTopAppBarColors
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.material.icons.filled.Info
-import android.Manifest
-import android.opengl.GLES20
-import androidx.compose.ui.tooling.preview.Preview
+import javax.microedition.khronos.opengles.GL10
+
 
 class MainActivity : ComponentActivity() {
 
@@ -68,17 +73,17 @@ class MainActivity : ComponentActivity() {
         )
 
         session = Session(this)
-        imageDatabase = this.assets.open("imagedb/images.imgdb").use {
-            AugmentedImageDatabase.deserialize(session, it)
-        }
-        config = Config(session)
-        config.augmentedImageDatabase = imageDatabase
-        session.configure(config)
-        session.resume()
+//        imageDatabase = this.assets.open("imagedb/images.imgdb").use {
+//            AugmentedImageDatabase.deserialize(session, it)
+//        }
+//        config = Config(session)
+//        config.augmentedImageDatabase = imageDatabase
+//        session.configure(config)
+//        session.resume()
 
-        val genTextures = IntArray(1){0}
-        GLES20.glGenTextures(1, genTextures, 0)
-        session.setCameraTextureName(genTextures[0])
+//        val genTextures = IntArray(1){0}
+//        GLES20.glGenTextures(1, genTextures, 0)
+//        session.setCameraTextureName(genTextures[0])
 
         setContent {
             ThingLinkARDemoTheme {
@@ -115,7 +120,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        text = "Scan Mona Lisa",
+                        text = "Press the button to anchor the object",
                     )
                 }
             },
@@ -124,8 +129,8 @@ class MainActivity : ComponentActivity() {
             },
             floatingActionButton = {
                 ExtendedFloatingActionButton(
-                    text = { Text("Start") },
-                    icon = { Icon(Icons.Filled.Info, contentDescription = "") },
+                    text = { Text("Anchor") },
+                    icon = { Icon(Icons.Filled.Check, contentDescription = "") },
                     onClick = {
 
                     }
@@ -170,17 +175,33 @@ class MainActivity : ComponentActivity() {
                         loadModelGlbAsync(
                             glbFileLocation = "models/sphere.glb",
                         ) {}
-                        onFrame = { _, _ ->
-                            updateAugmentedImages(session, modelNode.value!!)
-                        }
                     }
                 arNodes.add(modelNode.value!!)
             }
         )
     }
 
-    private fun updateAugmentedImages(session: Session, model: ArModelNode) {
-        val frame = session.update()
+    private fun onDrawFrame(model: ArModelNode) {
+        // Clear screen to notify driver it should not load any pixels from previous frame.
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+
+        try {
+            // session.setCameraTextureName(backgroundRenderer.getTextureId())
+
+            // Obtain the current frame from ARSession. When the configuration is set to
+            // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
+            // camera framerate.
+            val frame = session.update()
+
+            // Visualize augmented images.
+            updateAugmentedImages(model, frame)
+        } catch (t: Throwable) {
+            // Avoid crashing the application due to unhandled exceptions.
+            Log.e("Error", "Exception on the OpenGL thread", t)
+        }
+    }
+
+    private fun updateAugmentedImages(model: ArModelNode, frame: Frame) {
         val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
 
         for (img in updatedAugmentedImages) {
@@ -188,21 +209,17 @@ class MainActivity : ComponentActivity() {
                 when (img.trackingMethod) {
                     AugmentedImage.TrackingMethod.LAST_KNOWN_POSE -> {
                         // The planar target is currently being tracked based on its last known pose.
-                        model.isVisible = true
-                        model.position = img.centerPose.position
-                        model.anchor()
+                        Log.d("DEBUG", "LAST KNOW POSE")
                     }
 
                     AugmentedImage.TrackingMethod.FULL_TRACKING -> {
                         // The planar target is being tracked using the current camera image.
-                        model.isVisible = true
-                        model.position = img.centerPose.position
-                        model.anchor()
+                        Log.d("DEBUG", "FULL TRACKING")
                     }
 
                     AugmentedImage.TrackingMethod.NOT_TRACKING -> {
                         // The planar target isn't been tracked.
-                        model.isVisible = false
+                        Log.d("DEBUG", "NOT TRACKING")
                     }
                 }
             }
