@@ -1,9 +1,6 @@
 package com.example.thinglink_ar_demo
 
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,11 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,23 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.example.thinglink_ar_demo.common.helpers.CameraPermissionHelper
-import com.example.thinglink_ar_demo.common.helpers.SnackbarHelper
 import com.example.thinglink_ar_demo.ui.theme.ThingLinkARDemoTheme
-import com.google.android.material.snackbar.Snackbar
-import com.google.ar.core.ArCoreApk
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.AugmentedImageDatabase
 import com.google.ar.core.Config
 import com.google.ar.core.Config.LightEstimationMode
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
-import com.google.ar.core.exceptions.CameraNotAvailableException
-import com.google.ar.core.exceptions.UnavailableApkTooOldException
-import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException
-import com.google.ar.core.exceptions.UnavailableSdkTooOldException
-import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.arcore.position
 import io.github.sceneview.ar.node.ArModelNode
@@ -58,15 +43,9 @@ import io.github.sceneview.ar.node.PlacementMode
 import androidx.compose.material3.TopAppBarDefaults.mediumTopAppBarColors
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material.icons.filled.Info
-import kotlinx.coroutines.launch
 import android.Manifest
-import android.opengl.GLES11Ext
 import android.opengl.GLES20
-import android.view.Surface
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
 
 class MainActivity : ComponentActivity() {
 
