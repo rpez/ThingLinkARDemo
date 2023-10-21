@@ -60,6 +60,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material.icons.filled.Info
 import kotlinx.coroutines.launch
 import android.Manifest
+import android.opengl.GLES11Ext
+import android.opengl.GLES20
 import android.view.Surface
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.MutableState
@@ -69,6 +71,8 @@ import androidx.core.app.ActivityCompat
 class MainActivity : ComponentActivity() {
 
     private lateinit var session: Session
+    private lateinit var imageDatabase: AugmentedImageDatabase
+    private lateinit var config: Config
 
     private val requestPermissionLauncher =
         registerForActivityResult(
@@ -85,6 +89,17 @@ class MainActivity : ComponentActivity() {
         )
 
         session = Session(this)
+        imageDatabase = this.assets.open("imagedb/images.imgdb").use {
+            AugmentedImageDatabase.deserialize(session, it)
+        }
+        config = Config(session)
+        config.augmentedImageDatabase = imageDatabase
+        session.configure(config)
+        session.resume()
+
+        val genTextures = IntArray(1){0}
+        GLES20.glGenTextures(1, genTextures, 0)
+        session.setCameraTextureName(genTextures[0])
 
         setContent {
             ThingLinkARDemoTheme {
@@ -177,7 +192,7 @@ class MainActivity : ComponentActivity() {
                             glbFileLocation = "models/sphere.glb",
                         ) {}
                         onFrame = { _, _ ->
-//                            updateAugmentedImages(session, modelNode.value!!)
+                            updateAugmentedImages(session, modelNode.value!!)
                         }
                     }
                 arNodes.add(modelNode.value!!)
@@ -185,33 +200,33 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-//    fun updateAugmentedImages(session: Session, model: ArModelNode) {
-//        val frame = session.update()
-//        val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
-//
-//        for (img in updatedAugmentedImages) {
-//            if (img.trackingState == TrackingState.TRACKING) {
-//                when (img.trackingMethod) {
-//                    AugmentedImage.TrackingMethod.LAST_KNOWN_POSE -> {
-//                        // The planar target is currently being tracked based on its last known pose.
-//                        model.isVisible = true
-//                        model.position = img.centerPose.position
-//                        model.anchor()
-//                    }
-//
-//                    AugmentedImage.TrackingMethod.FULL_TRACKING -> {
-//                        // The planar target is being tracked using the current camera image.
-//                        model.isVisible = true
-//                        model.position = img.centerPose.position
-//                        model.anchor()
-//                    }
-//
-//                    AugmentedImage.TrackingMethod.NOT_TRACKING -> {
-//                        // The planar target isn't been tracked.
-//                        model.isVisible = false
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private fun updateAugmentedImages(session: Session, model: ArModelNode) {
+        val frame = session.update()
+        val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
+
+        for (img in updatedAugmentedImages) {
+            if (img.trackingState == TrackingState.TRACKING) {
+                when (img.trackingMethod) {
+                    AugmentedImage.TrackingMethod.LAST_KNOWN_POSE -> {
+                        // The planar target is currently being tracked based on its last known pose.
+                        model.isVisible = true
+                        model.position = img.centerPose.position
+                        model.anchor()
+                    }
+
+                    AugmentedImage.TrackingMethod.FULL_TRACKING -> {
+                        // The planar target is being tracked using the current camera image.
+                        model.isVisible = true
+                        model.position = img.centerPose.position
+                        model.anchor()
+                    }
+
+                    AugmentedImage.TrackingMethod.NOT_TRACKING -> {
+                        // The planar target isn't been tracked.
+                        model.isVisible = false
+                    }
+                }
+            }
+        }
+    }
 }
