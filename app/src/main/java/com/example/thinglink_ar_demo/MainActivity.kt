@@ -1,9 +1,7 @@
 package com.example.thinglink_ar_demo
 
 import android.Manifest
-import android.opengl.GLES20
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,17 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -31,46 +22,37 @@ import androidx.compose.material3.TopAppBarDefaults.mediumTopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.thinglink_ar_demo.ui.theme.ThingLinkARDemoTheme
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.ar.core.AugmentedImage
-import com.google.ar.core.AugmentedImageDatabase
-import com.google.ar.core.Camera
-import com.google.ar.core.Config
 import com.google.ar.core.Config.LightEstimationMode
-import com.google.ar.core.Frame
 import com.google.ar.core.Session
-import com.google.ar.core.TrackingState
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.node.ArModelNode
 import io.github.sceneview.ar.node.ArNode
 import io.github.sceneview.ar.node.PlacementMode
-import javax.microedition.khronos.opengles.GL10
-
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var session: Session
 
+    // Coroutine launcher for permissions
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
-        ) { _ ->
-
-        }
+        ) { _ -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Ask for camera permissions
         requestPermissionLauncher.launch(
             Manifest.permission.CAMERA
         )
 
+        // Create session
         session = Session(this)
 
         setContent {
@@ -84,9 +66,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainView() {
-        val scope = rememberCoroutineScope()
-        val snackbarHostState = remember { SnackbarHostState() }
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -155,6 +134,7 @@ class MainActivity : ComponentActivity() {
                 arNodes.add(modelNode.value!!)
             },
             onTap = { _ ->
+                // Anchor 3D object to current place
                 modelNode.value?.anchor()
             }
         )
