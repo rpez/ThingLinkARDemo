@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.thinglink_ar_demo.ui.theme.ThingLinkARDemoTheme
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.AugmentedImageDatabase
 import com.google.ar.core.Camera
@@ -107,22 +108,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        text = "Press the button to anchor the object",
+                        text = "Tap the screen to anchor the object",
                     )
                 }
             },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    text = { Text("Anchor") },
-                    icon = { Icon(Icons.Filled.Check, contentDescription = "") },
-                    onClick = {
-
-                    }
-                )
-            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -164,6 +153,9 @@ class MainActivity : ComponentActivity() {
                         ) {}
                     }
                 arNodes.add(modelNode.value!!)
+            },
+            onTap = { _ ->
+                modelNode.value?.anchor()
             }
         )
     }
