@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        text = "Tap the screen to anchor the object",
+                        text = "Tap the screen to anchor the object. Tap the anchored object to show info.",
                     )
                 }
             },
