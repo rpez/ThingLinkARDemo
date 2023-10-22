@@ -30,25 +30,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.thinglink_ar_demo.ui.theme.ThingLinkARDemoTheme
 import com.google.ar.core.Config.LightEstimationMode
-import com.google.ar.core.Session
-import com.google.ar.sceneform.math.Vector3
 import io.github.sceneview.ar.ARScene
-import io.github.sceneview.ar.arcore.position
 import io.github.sceneview.ar.node.ArModelNode
 import io.github.sceneview.ar.node.ArNode
 import io.github.sceneview.ar.node.PlacementMode
-import io.github.sceneview.math.toVector3
 
 class MainActivity : ComponentActivity() {
 
-    // How close to the object are taps registered
-    private val objectTapRadius: Float = 1.0f
-    // The AR session
-    private lateinit var session: Session
     // Coroutine launcher for permissions
     private val requestPermissionLauncher =
         registerForActivityResult(
@@ -63,9 +54,6 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.CAMERA
         )
 
-        // Create session
-        session = Session(this)
-
         // App UI
         setContent {
             ThingLinkARDemoTheme {
@@ -78,7 +66,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MainView() {
         // Should the info popup be shown
-        val showPopup = remember { mutableStateOf<Boolean>(false) }
+        val showDialog = remember { mutableStateOf(false) }
 
         // All content of the app is within this scaffold
         Scaffold(
@@ -119,8 +107,8 @@ class MainActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        ARScreen(showPopup)
-                        if (showPopup.value) InfoPopup(showPopup)
+                        ARScreen(showDialog)
+                        if (showDialog.value) InfoPopup(showDialog)
                     }
                 }
             }
@@ -134,9 +122,7 @@ class MainActivity : ComponentActivity() {
         // The 3D models in the scene
         val modelNode = remember { mutableStateOf<ArModelNode?>(null) }
         // Whether or not the model has been placed
-        val modelPlaced = remember { mutableStateOf<Boolean>(false) }
-        // The current position of the placed model
-        val nodePosition = remember { mutableStateOf<Vector3>(Vector3.zero()) }
+        val modelPlaced = remember { mutableStateOf(false) }
 
         // AR scene with a placeable object
         ARScene(
@@ -157,12 +143,11 @@ class MainActivity : ComponentActivity() {
                 }
                 arNodes.add(modelNode.value!!)
             },
-            onTap = { hitResult ->
+            onTap = { _ ->
                 // Anchor 3D object to current place, if it is not anchored yet
                 if (!modelPlaced.value) {
                     modelNode.value?.anchor()
                     modelPlaced.value = true
-                    nodePosition.value = hitResult.hitPose.position.toVector3()
                 }
             }
         )
