@@ -2,7 +2,6 @@ package com.example.thinglink_ar_demo
 
 import android.Manifest
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
 import com.example.thinglink_ar_demo.ui.theme.ThingLinkARDemoTheme
 import com.google.ar.core.Config.LightEstimationMode
 import com.google.ar.core.Session
@@ -76,7 +74,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Preview
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainView() {
@@ -130,7 +127,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-//    @Preview
     @Composable
     fun ARScreen(showPopup: MutableState<Boolean>) {
         // The AR nodes in the scene
@@ -156,6 +152,9 @@ class MainActivity : ComponentActivity() {
                             glbFileLocation = "models/sphere.glb",
                         ) {}
                     }
+                modelNode.value?.onTap = { _, _ ->
+                    if (modelPlaced.value) showPopup.value = true
+                }
                 arNodes.add(modelNode.value!!)
             },
             onTap = { hitResult ->
@@ -164,11 +163,6 @@ class MainActivity : ComponentActivity() {
                     modelNode.value?.anchor()
                     modelPlaced.value = true
                     nodePosition.value = hitResult.hitPose.position.toVector3()
-                }
-                // Otherwise, check if already placed model was hit, and display info
-                else if (modelPlaced.value && Vector3Distance(hitResult.hitPose.position.toVector3(), nodePosition.value) < objectTapRadius) {
-                    Log.d("DEBUG", "object hit")
-                    showPopup.value = true
                 }
             }
         )
@@ -209,10 +203,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         )
-    }
-
-    // Helper function for calculating distance between two vectors
-    private fun Vector3Distance(a: Vector3, b: Vector3): Float {
-        return Vector3.subtract(a, b).length()
     }
 }
