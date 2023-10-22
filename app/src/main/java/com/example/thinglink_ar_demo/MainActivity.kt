@@ -135,7 +135,8 @@ class MainActivity : ComponentActivity() {
                 modelNode.value =
                     ArModelNode(it.engine, placementMode = PlacementMode.INSTANT).apply {
                         loadModelGlbAsync(
-                            glbFileLocation = "models/sphere.glb",
+                            glbFileLocation = "models/map_pointer_3d_icon.glb",
+                            scaleToUnits = 0.3f
                         ) {}
                     }
                 modelNode.value?.onTap = { _, _ ->
