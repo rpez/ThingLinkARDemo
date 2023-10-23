@@ -63,21 +63,19 @@ fun ARScreen(showPopup: MutableState<Boolean>) {
                     modelNode.value?.anchor()
                     modelPlaced.value = true
                 }
+                // Place already anchored model into new position (current camera center)
                 else {
-                    modelNode.value?.anchor?.detach()
+//                    modelNode.value?.anchor?.detach()
                     modelNode.value?.placementMode = PlacementMode.INSTANT
-                    modelPlaced.value = false
+                    modelNode.value?.anchor()
                 }
             }
         ) {
-            if (!modelPlaced.value) {
-                Icon(Icons.Filled.Check, contentDescription = "")
+            Icon(Icons.Filled.Check, contentDescription = "")
+            if (!modelPlaced.value)
                 Text("Anchor")
-            }
-            else {
-                Icon(Icons.Filled.Clear, contentDescription = "")
-                Text("Detach")
-            }
+            else
+                Text("Re-anchor")
         }
     }
 }

@@ -50,7 +50,7 @@ fun MainView(context: Context) {
                     modifier = Modifier
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    text = "Tap the screen to anchor the object. Tap the anchored object to show info.",
+                    text = "Use the button to anchor the object. Tap the anchored object to show info dialog.",
                 )
             }
         },
