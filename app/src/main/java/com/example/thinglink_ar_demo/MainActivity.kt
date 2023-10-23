@@ -130,8 +130,8 @@ class MainActivity : ComponentActivity() {
             nodes = arNodes,
             planeRenderer = true,
             onCreate = {
-                it.lightEstimationMode = LightEstimationMode.AMBIENT_INTENSITY
-                it.planeRenderer.isShadowReceiver = true
+                it.lightEstimationMode = LightEstimationMode.DISABLED
+                it.planeRenderer.isShadowReceiver = false
                 modelNode.value =
                     ArModelNode(it.engine, placementMode = PlacementMode.INSTANT).apply {
                         loadModelGlbAsync(
